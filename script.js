@@ -9,13 +9,31 @@ const products = [
   { id: 5, name: "Product 5", price: 50 },
 ];
 
+const CART_KEY = "User Cart"; // define once, use everywhere - avoids typos
+
 const productList = document.getElementById("product-list");
 const cartList = document.querySelector("#cart-list");
 const clearCartButton = document.querySelector("#clear-cart-btn");
 
-let userCartDetails = JSON.parse(sessionStorage.getItem("User Cart")) || [];
+let userCartDetails = [];
+
+// Explicit loader, called once on init
+function loadCartFromStorage() {
+  try {
+    const stored = sessionStorage.getItem(CART_KEY);
+    userCartDetails = stored ? JSON.parse(stored) : [];
+  } catch (err) {
+    console.error("Failed to parse cart from sessionStorage:", err);
+    userCartDetails = [];
+  }
+}
+
+function saveCartToStorage() {
+  sessionStorage.setItem(CART_KEY, JSON.stringify(userCartDetails));
+}
 
 function renderProducts() {
+  productList.innerHTML = "";
   products.forEach((product) => {
     const li = document.createElement("li");
     li.innerHTML = `${product.name} - $${product.price} <button class="add-to-cart-btn" data-id="${product.id}">Add to Cart</button>`;
@@ -23,15 +41,8 @@ function renderProducts() {
   });
 }
 
-productList.addEventListener("click", (e) => {
-  const prodId = e.target.dataset.id;
-  if (!prodId) return; // clicked outside a button
-  addToCart(parseInt(prodId));
-});
-
-// Single function responsible for drawing the cart from state
 function renderCart() {
-  cartList.innerHTML = ""; // clear first so we never duplicate
+  cartList.innerHTML = "";
   userCartDetails.forEach((product) => {
     const li = document.createElement("li");
     li.innerHTML = `${product.name} - $${product.price} <button class="remove-from-cart-btn" data-id="${product.id}">Remove from Cart</button>`;
@@ -43,9 +54,27 @@ function addToCart(productId) {
   const product = products.find((p) => p.id === productId);
   if (!product) return;
   userCartDetails.push({ id: product.id, name: product.name, price: product.price });
-  sessionStorage.setItem("User Cart", JSON.stringify(userCartDetails));
-  renderCart(); // re-render from updated state
+  saveCartToStorage();
+  renderCart();
 }
+
+function removeFromCart(productId) {
+  userCartDetails = userCartDetails.filter((cart) => cart.id !== productId);
+  saveCartToStorage();
+  renderCart();
+}
+
+function clearCart() {
+  userCartDetails = [];
+  sessionStorage.removeItem(CART_KEY);
+  renderCart();
+}
+
+productList.addEventListener("click", (e) => {
+  const prodId = e.target.dataset.id;
+  if (!prodId) return;
+  addToCart(parseInt(prodId));
+});
 
 cartList.addEventListener("click", (e) => {
   const cartId = e.target.dataset.id;
@@ -53,21 +82,9 @@ cartList.addEventListener("click", (e) => {
   removeFromCart(parseInt(cartId));
 });
 
-function removeFromCart(productId) {
-  userCartDetails = userCartDetails.filter((cart) => cart.id !== productId);
-  sessionStorage.setItem("User Cart", JSON.stringify(userCartDetails));
-  renderCart(); // re-render from updated state
-}
+clearCartButton.addEventListener("click", clearCart);
 
-clearCartButton.addEventListener("click", () => {
-  clearCart();
-});
-
-function clearCart() {
-  userCartDetails = [];
-  sessionStorage.removeItem("User Cart");
-  renderCart();
-}
-
+// Init sequence: load state first, then render everything from that state
+loadCartFromStorage();
 renderProducts();
 renderCart();
