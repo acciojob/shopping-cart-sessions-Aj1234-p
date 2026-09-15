@@ -74,6 +74,7 @@ clearCartButton.addEventListener('click',(e)=>{
 })
 // Clear cart
 function clearCart() {
+	 cartList.innerHTML = "";
   sessionStorage.clear();
 }
 
