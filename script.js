@@ -32,8 +32,9 @@ let userCartDetails = JSON.parse(sessionStorage.getItem("User Cart")) || [];
 function renderCart() {
   console.log("Comes inside a render function ");
   if(JSON.parse(sessionStorage.getItem("User Cart"))!==null){
+    let existUserCartDetails = JSON.parse(sessionStorage.getItem("User Cart")) || [];
     console.log("render list ",userCartDetails);
-    userCartDetails.forEach((product) => {
+    existUserCartDetails.forEach((product) => {
       const li = document.createElement("li");
       li.innerHTML = `${product.name} - $${product.price} <button class="add-to-cart-btn" data-id="${product.id}">Remove to Cart</button>`;
       cartList.appendChild(li);
@@ -47,6 +48,9 @@ function addToCart(productId) {
       products.forEach((product)=>{
         if(product.id===productId){
           console.log("Product ",product);
+           const li = document.createElement("li");
+           li.innerHTML = `${product.name} - $${product.price} <button class="add-to-cart-btn" data-id="${product.id}">Remove to Cart</button>`;
+           cartList.appendChild(li);
           let cartDetails = {id: product.id, name: product.name, price: product.price};
           userCartDetails.push(cartDetails);
           sessionStorage.setItem("User Cart",JSON.stringify(userCartDetails));
@@ -74,7 +78,7 @@ clearCartButton.addEventListener('click',(e)=>{
 })
 // Clear cart
 function clearCart() {
-	 cartList.innerHTML = "";
+  cartList.innerHTML = "";
   sessionStorage.clear();
 }
 
