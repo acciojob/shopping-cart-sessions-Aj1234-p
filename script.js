@@ -11,7 +11,8 @@ const products = [
 
 // DOM elements
 const productList = document.getElementById("product-list");
-
+const cartList = document.querySelector("#cart-list");
+let clearCartButton = document.querySelector("#clear-cart-btn")
 // Render product list
 function renderProducts() {
   products.forEach((product) => {
@@ -21,17 +22,60 @@ function renderProducts() {
   });
 }
 
+productList.addEventListener('click',(e)=>{
+  let prodId = e.target.dataset.id;
+  addToCart(parseInt(prodId));
+})
+
+let userCartDetails = JSON.parse(sessionStorage.getItem("User Cart")) || [];
 // Render cart list
-function renderCart() {}
+function renderCart() {
+  console.log("Comes inside a render function ");
+  if(JSON.parse(sessionStorage.getItem("User Cart"))!==null){
+    console.log("render list ",userCartDetails);
+    userCartDetails.forEach((product) => {
+      const li = document.createElement("li");
+      li.innerHTML = `${product.name} - $${product.price} <button class="add-to-cart-btn" data-id="${product.id}">Remove to Cart</button>`;
+      cartList.appendChild(li);
+    });
+  }
+}
 
 // Add item to cart
-function addToCart(productId) {}
+function addToCart(productId) {
+  console.log("add to cart inside function");
+      products.forEach((product)=>{
+        if(product.id===productId){
+          console.log("Product ",product);
+          let cartDetails = {id: product.id, name: product.name, price: product.price};
+          userCartDetails.push(cartDetails);
+          sessionStorage.setItem("User Cart",JSON.stringify(userCartDetails));
+        }
+      })
+}
+
+
+cartList.addEventListener('click',(e)=>{
+  console.log("user cart list ",e.target.dataset.id);
+  let cartId = e.target.dataset.id;
+  removeFromCart(parseInt(cartId));
+})
 
 // Remove item from cart
-function removeFromCart(productId) {}
+function removeFromCart(productId) {
+     userCartDetails = userCartDetails.filter(cart => cart.id!==productId);
+     console.log("updated cart details ",userCartDetails);
+     sessionStorage.setItem("User Cart",JSON.stringify(userCartDetails));
+}
 
+clearCartButton.addEventListener('click',(e)=>{
+  console.log("clear cart button inside");
+  clearCart();
+})
 // Clear cart
-function clearCart() {}
+function clearCart() {
+  sessionStorage.clear();
+}
 
 // Initial render
 renderProducts();
